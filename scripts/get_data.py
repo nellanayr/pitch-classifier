@@ -26,7 +26,7 @@ def _get_features(df: pd.DataFrame) -> pd.DataFrame:
 def main():
     sc_df = _get_statcast_data()
     df = _get_features(df = sc_df)
-    df.to_csv('data/pitches.csv', index = False)
+    df.to_csv(SETTINGS.data_csv_path, index = False)
 
 if __name__ == '__main__':
     main()
