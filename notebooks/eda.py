@@ -73,6 +73,22 @@ def _velocity_by_pitch_type() -> None:
         )
     )
 
+def _avg_break_by_pitch_type() -> None:
+    print(
+        duckdb.query(
+            f"""
+            select
+                pitch_name,
+                count(*) as n,
+                avg(pfx_x) as avg_hor_break,
+                avg(pfx_z) as avg_ver_break
+            from '{DATA_PATH}'
+            group by 1
+            order by 2 desc
+            """
+        )
+    )
+
 def main():
     # data preview
     print('Preview Data')
@@ -103,7 +119,10 @@ def main():
     print('Velocity by Pitch Type')
     _velocity_by_pitch_type()
     print()
-    
+
+    print('Average Break by Pitch Type')
+    _avg_break_by_pitch_type()
+    print()
 
 if __name__ == '__main__':
     main()

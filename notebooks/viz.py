@@ -2,6 +2,7 @@ from config import settings
 import duckdb
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 
 SETTINGS = settings.Settings()
 DATA_PATH = SETTINGS.data_csv_path
@@ -47,12 +48,69 @@ def velo_dist_bw(df: pd.DataFrame) -> None:
     fig.savefig(output_path, dpi=200)
     plt.close(fig)
 
+def break_scatter(df: pd.DataFrame) -> None:
+    df = df.copy()
+    output_path = "visualizations/break_scatter.png"
+    df["pfx_x"] = pd.to_numeric(df["pfx_x"], errors="coerce")
+    df["pfx_z"] = pd.to_numeric(df["pfx_z"], errors="coerce")
+    df = df[
+        df["pitch_name"].notna()
+        & df["pfx_x"].notna()
+        & df["pfx_z"].notna()
+    ]
+    pitches = sorted(df["pitch_name"].unique())
+
+    # One color per pitch (cycles tab10 if >10 types)
+    base_colors = plt.cm.tab10(np.linspace(0, 1, 10))
+    color_map = {p: base_colors[i % 10] for i, p in enumerate(pitches)}
+    fig, ax = plt.subplots(figsize=(10, 8))
+    # Raw points: light / dense
+    for pitch in pitches:
+        sub = df.loc[df["pitch_name"] == pitch]
+        ax.scatter(
+            sub["pfx_x"],
+            sub["pfx_z"],
+            c=[color_map[pitch]],
+            s=15,
+            alpha=0.25,
+            edgecolors="none",
+            label=pitch,
+        )
+    # Mean per pitch: bolder overlay
+    means = df.groupby("pitch_name", observed=True)[["pfx_x", "pfx_z"]].mean()
+    for pitch in pitches:
+        if pitch not in means.index:
+            continue
+        row = means.loc[pitch]
+        ax.scatter(
+            row["pfx_x"],
+            row["pfx_z"],
+            c=[color_map[pitch]],
+            s=120,
+            alpha=1.0,
+            edgecolors="black",
+            linewidths=1.5,
+            zorder=5,
+        )
+    ax.set_xlabel("pfx_x")
+    ax.set_ylabel("pfx_z")
+    ax.set_title("Pitch movement: pfx_x vs pfx_z")
+    ax.axhline(0, color="black", linewidth=2, zorder=100)
+    ax.axvline(0, color="black", linewidth=2, zorder=100)
+    ax.legend(bbox_to_anchor=(1.02, 1), loc="upper left", fontsize=8)
+    plt.tight_layout()
+    fig.savefig(output_path, dpi=200, bbox_inches="tight")
+    plt.close(fig)
+
 def main():
     # import df
     df = _get_data()
 
     # box and whisker of velo distributions
     velo_dist_bw(df = df)
+
+    # scatter plot of pitch breaks
+    break_scatter(df = df)
 
 if __name__ == '__main__':
     main()

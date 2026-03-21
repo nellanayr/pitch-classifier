@@ -1,4 +1,5 @@
 from config import settings
+import duckdb
 import pandas as pd
 import pybaseball
 
@@ -12,22 +13,25 @@ def _get_statcast_data(
     return pybaseball.statcast(start_dt = start_date, end_dt = end_date, verbose = False)
 
 def _get_features(df: pd.DataFrame) -> pd.DataFrame:
-    # remove null and pitchouts
-    df1 = df[
-        (df['pitch_type'] != 'PO') & (df['pitch_type'].notna())
-    ]
-
-    # get needed columns 
-    return df1[[
-        'pitch_type',
-        'pitch_name',
-        'p_throws',
-        'release_speed',
-        # 'release_spin',
-        'pfx_x',
-        'pfx_z',
-        'spin_axis'
-    ]]
+    df = df
+    return duckdb.query(
+        """
+        select
+            pitch_type,
+            pitch_name,
+            release_speed,
+            case
+                when p_throws = 'L' then pfx_x * -1
+                else pfx_x
+            end as pfx_x,                   -- standardize lefties and righties
+            pfx_z,
+            spin_axis 
+        from df
+        where 1=1
+            and pitch_type != 'PO'          -- no pitchouts 
+            and pitch_type is not null      -- remove missing data rows
+        """
+    ).to_df()
 
 def main():
     sc_df = _get_statcast_data()
