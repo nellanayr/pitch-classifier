@@ -12,7 +12,13 @@ def _get_statcast_data(
     return pybaseball.statcast(start_dt = start_date, end_dt = end_date, verbose = False)
 
 def _get_features(df: pd.DataFrame) -> pd.DataFrame:
-    return df[[
+    # remove null and pitchouts
+    df1 = df[
+        (df['pitch_type'] != 'PO') & (df['pitch_type'].notna())
+    ]
+
+    # get needed columns 
+    return df1[[
         'pitch_type',
         'pitch_name',
         'p_throws',

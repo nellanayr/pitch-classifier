@@ -59,7 +59,8 @@ def _velocity_by_pitch_type() -> None:
         duckdb.query(
             f"""
             select
-                pitch_type,
+                pitch_name,
+                count(*) as n,
                 min(release_speed) as min,
                 quantile(release_speed, 0.25) as p25,
                 quantile(release_speed, 0.50) as med,
@@ -67,7 +68,7 @@ def _velocity_by_pitch_type() -> None:
                 max(release_speed) as max
             from '{DATA_PATH}'
             group by 1
-            order by 4 desc
+            order by 2 desc
             """
         )
     )
@@ -103,7 +104,6 @@ def main():
     _velocity_by_pitch_type()
     print()
     
-
 
 if __name__ == '__main__':
     main()
