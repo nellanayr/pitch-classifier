@@ -1,14 +1,7 @@
-from config import settings
-import duckdb
+from utils import common
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-
-SETTINGS = settings.Settings()
-DATA_PATH = SETTINGS.data_csv_path
-
-def _get_data() -> pd.DataFrame:
-    return duckdb.query(f"select * from '{DATA_PATH}'").to_df()
 
 def velo_dist_bw(df: pd.DataFrame) -> None:
     df = df.copy()
@@ -104,7 +97,7 @@ def break_scatter(df: pd.DataFrame) -> None:
 
 def main():
     # import df
-    df = _get_data()
+    df = common.get_data()
 
     # box and whisker of velo distributions
     velo_dist_bw(df = df)
