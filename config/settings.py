@@ -7,7 +7,7 @@ class Settings(BaseModel):
     data_csv_path: str = 'data/pitches.csv'
 
     # models
-    random_seed = 19
+    random_seed: int = 19
 
     # multinomial linear regression
-    mlr_test_prop = .25
+    mlr_test_prop: float = .25

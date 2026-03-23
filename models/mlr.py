@@ -1,5 +1,6 @@
 # multinominal linear regression
 
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from config import settings
@@ -33,3 +34,22 @@ def main():
 
     # scale features
     scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+
+    # build model
+    model = LogisticRegression(
+        solver = 'lbfgs',
+        max_iter = 200,
+        random_state = SETTINGS.random_seed
+    )
+    model.fit(X_train_scaled, Y_train)
+    print(f'Iterations: {model.n_iter_[0]}')
+
+    # baseline fit accuracies
+    training_acc = model.score(X_train_scaled, Y_train)
+    null_acc = Y_train.value_counts(normalize = True).max()
+    print(f'Improvement over null: {training_acc} - {null_acc}')
+
+if __name__ == '__main__':
+    main()
