@@ -1,6 +1,7 @@
 # multinominal linear regression
 
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from config import settings
@@ -20,6 +21,7 @@ def main():
         'pfx_z',
         'spin_axis'
     ]
+    df = df.dropna(subset = FEATURE_COLS + [TARGET_COL])
     Y = df[TARGET_COL]
     X = df[FEATURE_COLS]
 
@@ -49,7 +51,17 @@ def main():
     # baseline fit accuracies
     training_acc = model.score(X_train_scaled, Y_train)
     null_acc = Y_train.value_counts(normalize = True).max()
-    print(f'Improvement over null: {training_acc} - {null_acc}')
+    print(f'Improvement over null: {training_acc - null_acc}')
+
+    train_probs = model.predict_proba(X_train_scaled)
+    test_probs  = model.predict_proba(X_test_scaled)
+    train_ll = log_loss(Y_train, train_probs)
+    test_ll  = log_loss(Y_test, test_probs)
+    print(f"Training log-loss:   {train_ll:.4f}")
+    print(f"Test log-loss:       {test_ll:.4f}")
+    print(f"Difference:          {test_ll - train_ll:+.4f}")
+
+    # eval
 
 if __name__ == '__main__':
     main()
