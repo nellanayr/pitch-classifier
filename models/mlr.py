@@ -1,11 +1,12 @@
 # multinominal linear regression
 
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import log_loss
+from sklearn.metrics import log_loss, classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from config import settings
 from utils import common
+import pandas as pd
 
 SETTINGS = settings.Settings()
 
@@ -47,11 +48,39 @@ def main():
     )
     model.fit(X_train_scaled, Y_train)
     print(f'Iterations: {model.n_iter_[0]}')
+    print()
+
+    # model coefficients
+    coef_df = pd.DataFrame(
+        model.coef_,
+        index = model.classes_,
+        columns = FEATURE_COLS
+    ).round(3)
+    print('Coefficients')
+    print(coef_df)
+    print()
+
+    # eval
+    Y_pred = model.predict(X_test_scaled)
+    classfn_report = classification_report(Y_test, Y_pred, target_names = model.classes_.astype(str), zero_division = 0)
+    print('Classification Report')
+    print(classfn_report)
+    print()
+
+    conf_matrix = pd.DataFrame(
+        confusion_matrix(Y_test, Y_pred, labels = model.classes_),
+        index = model.classes_,
+        columns = model.classes_
+    )
+    print('Confusion Matrix')
+    print(conf_matrix)
+    print()
 
     # baseline fit accuracies
     training_acc = model.score(X_train_scaled, Y_train)
     null_acc = Y_train.value_counts(normalize = True).max()
     print(f'Improvement over null: {training_acc - null_acc}')
+    print()
 
     train_probs = model.predict_proba(X_train_scaled)
     test_probs  = model.predict_proba(X_test_scaled)
@@ -60,8 +89,7 @@ def main():
     print(f"Training log-loss:   {train_ll:.4f}")
     print(f"Test log-loss:       {test_ll:.4f}")
     print(f"Difference:          {test_ll - train_ll:+.4f}")
-
-    # eval
+    print()
 
 if __name__ == '__main__':
     main()
